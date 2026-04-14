@@ -429,7 +429,7 @@ legend("topleft", inset = c(0.1, 0.3),
 
 - KM and NA naturally motivate point-wise comparisons between groups
   - usually methods can be used to construct hypothesis tests comparing survival at a given point in time (e.g., $S(t \mid A=1)$ vs. $S(t \mid A=0)$ for a fixed $t$
-    - overlapping 1- $\alpha$ confidence intervals $\iff p<\alpha$
+    - non-overlapping 1- $\alpha$ confidence intervals $\iff p<\alpha$
 - But: what about testing if $S(\cdot \mid A=1)$ differs from $S(\cdot \mid A=0)$: do the survival **functions** differ?
   - When we assume parametric distribution for $T$ this reduces to tests of whether parameters differ, e.g., rate parameters differ in exponential distributions conditional on $A$.
   - What about non-parametric methods with (independent) censoring?
