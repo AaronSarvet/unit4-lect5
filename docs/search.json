@@ -1,0 +1,191 @@
+[
+  {
+    "objectID": "unit4-lect5.html#agenda",
+    "href": "unit4-lect5.html#agenda",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "Agenda",
+    "text": "Agenda\n\nLogistics update:\n\nProject description: Due today (submit on canvas)\nProgress meeting: Tuesday, April 21,22 (sign-up at link in announcement, must sign up by Monday, April 20)\nNew dates for presentations, April 28, 30 (presentation date assigned April 20)\n(Shorter) Homework 4 (with extra credit opportunity): Due May 7"
+  },
+  {
+    "objectID": "unit4-lect5.html#agenda-1",
+    "href": "unit4-lect5.html#agenda-1",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "Agenda",
+    "text": "Agenda\n\nReview: Kaplan-Meier\nNelson-Aalen: cumulative hazards estimator\nlog-rank tests, intro hazard regression"
+  },
+  {
+    "objectID": "unit4-lect5.html#review",
+    "href": "unit4-lect5.html#review",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "Review",
+    "text": "Review"
+  },
+  {
+    "objectID": "unit4-lect5.html#review-1",
+    "href": "unit4-lect5.html#review-1",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "Review",
+    "text": "Review\nDiscrete-time review\n\n4 “survival” random variables\n\n\\(T\\)\n\\(T^* = min(X, T)\\)\n\\(T_L = I(C=1)X + I(C=0)T\\)\n\\(T_U = I(C=1)\\infty + I(C=0)T\\)\n\n4 “hazards”\n\n\\(\\lambda(k) = P(T=k \\mid T\\geq k)\\)\n\\(\\lambda_L(k) = P(T_L=k \\mid T_L\\geq k)\\)\n\\(\\lambda_U(k) = P(T_U=k \\mid T_U\\geq k)\\)\n\\(\\lambda^*(k) = P(T^*=k \\mid T^* \\geq k, X&gt;k)\\)"
+  },
+  {
+    "objectID": "unit4-lect5.html#review-2",
+    "href": "unit4-lect5.html#review-2",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "Review",
+    "text": "Review\nDiscrete-time review\n\nNo censoring\n\n\\(S(t) = \\prod\\limits_{k=0}^t\\Big(1-\\lambda(k)\\Big)\\)\n\nCensoring, no assumptions\n\nSharp lower bound: \\(S_L(t) = \\prod\\limits_{k=0}^t\\Big(1-\\lambda_L(k)\\Big)\\)\nSharp upper bound: \\(S_U(t) = \\prod\\limits_{k=0}^t\\Big(1-\\lambda_U(k)\\Big)\\)\n\nIndependent censoring: \\(T \\perp X\\)\n\n\\(S(t) = \\prod\\limits_{k=0}^t\\Big(1-\\lambda^*(k)\\Big)\\)\nNext week: using causal reasoning to justify, relax assumptions and deploy explicit causal methods"
+  },
+  {
+    "objectID": "unit4-lect5.html#review-3",
+    "href": "unit4-lect5.html#review-3",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "Review",
+    "text": "Review\nThe KM estimator of the survival function \\(S(t)=P(T &gt; t)\\) is \\[\\widehat{S}(t) = \\prod_{j: \\tau_j \\leq t} \\frac{ r_j - d_j } {r_j} = \\prod_{j: \\tau_j \\leq t} \\left(1 - \\frac{d_j}{r_j}\\right), \\text{where}\\]\n\n\\(\\tau_1, \\ldots, \\tau_K\\) are the \\(K\\) distinct observed event times.\n\\(d_j\\) is the number of deaths at \\(\\tau_j\\)\n\\(c_j\\) is the number of censored observations in the interval \\([\\tau_{j}, \\tau_{j+1})\\)\n\nCensoring times tied at \\(\\tau_j\\) are included in \\(c_j\\)\n\n\\(r_j\\) is the number of individuals ``at risk’’ right before \\(\\tau_j\\) (i.e. everyone who has an event or is censored at or after that time).\n\nHence, \\(r_j = r_{j-1} - d_{j-1} - c_{j-1}\\)\nAlternatively, \\(r_j = \\sum_{l \\ge j}(c_l+d_l)\\)"
+  },
+  {
+    "objectID": "unit4-lect5.html#censoring",
+    "href": "unit4-lect5.html#censoring",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "Censoring…",
+    "text": "Censoring…\n\\(T^*\\): \\({\\color{blue}6^+},6,6,6,7,{\\color{blue}9^+,10^+},10,{\\color{blue}11^+},13,16,{\\color{blue}17^+}\\) \\({\\color{blue}19^+,20^+},22,23,{\\color{blue}25^+,32^+,32^+,34^+,35^+}\\)\n\n\n\n\n\n\n\n\n\n\nValues of \\(t\\)\n# \\(T&lt;t, C&gt;t\\)\n\\(1-\\lambda^*(t)\\)\n\\(\\widehat{S}_{KM}(t)\\)\n\n\n\n\n\\(0  \\le t &lt; 6\\)\n\\(21\\)\n–\n\\(1\\)\n\n\n\\(6  \\le t &lt; 7\\)\n\\(21\\)\n\\(18/21\\)\n\\(18/21 = 0.86\\)\n\n\n\\(7  \\le t &lt; 10\\)\n\\(17\\)\n\\(16/17\\)\n\\((18/21)(16/17) = 0.81\\)\n\n\n\\(10 \\le t &lt; 13\\)\n\\(15\\)\n\\(14/15\\)\n\\((18/21)(16/17)(14/15) = 0.75\\)\n\n\n\\(13 \\le t &lt; 16\\)\n\\(12\\)\n\\(11/12\\)\n\\((18/21)(16/17)(14/15)(11/12) = 0.69\\)\n\n\n\\(16 \\le t &lt; 22\\)\n\\(11\\)\n\\(10/11\\)\n\\((18/21)(16/17)(14/15)(11/12)(10/11) = 0.63\\)\n\n\n\\(22 \\le t &lt; 23\\)\n\\(7\\)\n\\(6/7\\)\n\\((18/21)(16/17)(14/15)(11/12)(10/11)(6/7) = 0.54\\)\n\n\n\\(23 \\le t &lt; 36\\)\n\\(6\\)\n\\(5/6\\)\n\\((18/21)(16/17)(14/15)(11/12)(10/11)(6/7)(5/6) = 0.45\\)"
+  },
+  {
+    "objectID": "unit4-lect5.html#censoring-1",
+    "href": "unit4-lect5.html#censoring-1",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "Censoring…",
+    "text": "Censoring…"
+  },
+  {
+    "objectID": "unit4-lect5.html#confidence-intervals-for-the-km",
+    "href": "unit4-lect5.html#confidence-intervals-for-the-km",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "Confidence intervals for the KM",
+    "text": "Confidence intervals for the KM\nA pointwise 95% confidence interval (CI) could be based on \\[  \n  \\widehat{S}(t)  \\pm z_{1-\\alpha/2} \\times \\text{s.e.}[\\widehat{S}(t)],\n\\] with \\(\\text{s.e.}[\\widehat{S}(t)]\\) estimated using Greenwood’s formula.\n\nWhat is a potential problem with this approach?\nThis approach can yield values \\(&gt;1\\) or \\(&lt;0\\)."
+  },
+  {
+    "objectID": "unit4-lect5.html#confidence-intervals-for-the-km-1",
+    "href": "unit4-lect5.html#confidence-intervals-for-the-km-1",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "Confidence intervals for the KM",
+    "text": "Confidence intervals for the KM\n\nThe better approach is to use the log-log transformation and base intervals around \\[L(t) = \\log[-\\log[S(t)]]\\]\nTo transform back, use \\(S(t)=\\exp[-\\exp[L(t)]]\\).\nIn R, use the option conf.type = “log-log”. The default transformation in R is \\(L(t) = -\\log[S(t)]\\), i.e. conf.type = “log”."
+  },
+  {
+    "objectID": "unit4-lect5.html#log-log-transforamtion-for-ci",
+    "href": "unit4-lect5.html#log-log-transforamtion-for-ci",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "Log-log transforamtion for CI",
+    "text": "Log-log transforamtion for CI\n\n1. Define \\(L(t) = \\log[-\\log[S(t)]]\\).\n2. Form a 95% CI for \\(L(t)\\), \\((\\widehat{L}(t)-A,\\widehat{L}(t)+A),\\) with \\(A= 1.96 \\times \\text{s.e.}[\\widehat{L}(t)].\\)\n3. Apply \\(S(t)=\\exp[-\\exp[L(t)]]\\) to obtain the confidence bounds for the 95% CI on \\(S(t)\\), \\[\n\\left( \\exp[-e^{(\\widehat{L}(t)+A)}],\\exp[-e^{(\\widehat{L}(t)-A)}]\\right)\n\\]\n4. Substituting \\(\\widehat{L}(t)=\\log[-\\log[\\widehat{S}(t)]]\\) back into the above bounds yields confidence bounds of \\[\\left([\\widehat{S}(t)]^{e^A},[\\widehat{S}(t)]^{e^{-A}}\\right)\\]"
+  },
+  {
+    "objectID": "unit4-lect5.html#log-log-transforamtion-for-ci---cont.",
+    "href": "unit4-lect5.html#log-log-transforamtion-for-ci---cont.",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "Log-log transforamtion for CI - cont.",
+    "text": "Log-log transforamtion for CI - cont.\nSince\n\n\\(0 \\leq S(t) \\le 1\\),\n\\(0 \\leq -\\log[S(t)] &lt; \\infty\\), and\n\\(-\\infty &lt; \\log[-\\log[S(t)]] &lt; \\infty,\\)\nthen: the CI will be in the proper range (i.e. between 0 and 1) when transformed back."
+  },
+  {
+    "objectID": "unit4-lect5.html#the-cumulative-hazard-nelsonaalen-estimator",
+    "href": "unit4-lect5.html#the-cumulative-hazard-nelsonaalen-estimator",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "The Cumulative Hazard (Nelson–Aalen) Estimator",
+    "text": "The Cumulative Hazard (Nelson–Aalen) Estimator\nRecall:\n\nCumulative hazard function: \\(\\Lambda(t) := \\int_0^t \\lambda(u)du\\)\n\n\\(\\Lambda(t) = -log[S(t)]\\)\n\\(S(t) = exp[-\\Lambda(t)]\\)"
+  },
+  {
+    "objectID": "unit4-lect5.html#the-cumulative-hazard-nelsonaalen-estimator-1",
+    "href": "unit4-lect5.html#the-cumulative-hazard-nelsonaalen-estimator-1",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "The Cumulative Hazard (Nelson–Aalen) Estimator",
+    "text": "The Cumulative Hazard (Nelson–Aalen) Estimator\nDiscrete time intuiton…\n\nKaplan Meier leveraged: \\(S(t) = \\prod\\limits_{k=0}^t\\Big(1-\\lambda(k)\\Big)\\)\nNelson-Aalen will leverage: \\(S(t)  =  exp\\Big(-\\sum\\limits_{k=0}^t\\lambda(k)\\Big)\\)\nRemember, under independent censoring \\(\\lambda(k) = \\lambda^*(k)\\), so we can use whichever estimator we like!"
+  },
+  {
+    "objectID": "unit4-lect5.html#nelsonaalen-estimator",
+    "href": "unit4-lect5.html#nelsonaalen-estimator",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "Nelson–Aalen Estimator",
+    "text": "Nelson–Aalen Estimator\nContinuous time:\n\nThe cumulative hazard \\(\\Lambda(t)\\) can be approximated by a sum over \\(j\\) intervals, \\[\\Lambda(t) \\approx \\sum_{j}  \\lambda_j  \\Delta\\] where\n\n\\(\\lambda_j\\) is the value of the hazard in the \\(j^{th}\\) interval\n\\(\\Delta\\) is the width of each interval"
+  },
+  {
+    "objectID": "unit4-lect5.html#nelsonaalen-estimator-1",
+    "href": "unit4-lect5.html#nelsonaalen-estimator-1",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "Nelson–Aalen Estimator",
+    "text": "Nelson–Aalen Estimator\nContinuous time:\n\nSince \\(\\widehat{\\lambda}_j \\Delta\\) is approximately the probability of having an event in an interval \\(j\\), conditional on having survived until the beginning of the interval, \\(\\Lambda(t)\\) can be approximated further as \\[\\Lambda(t) \\approx \\sum_{j}  \\lambda_j  \\Delta \\approx \\sum_{j} \\frac{d_j}{r_j}\\]"
+  },
+  {
+    "objectID": "unit4-lect5.html#nelsonaalen-estimator-2",
+    "href": "unit4-lect5.html#nelsonaalen-estimator-2",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "Nelson–Aalen Estimator",
+    "text": "Nelson–Aalen Estimator\n\nThus, the Nelson–Aalen (NA) estimator can be written as \\[\\widehat{\\Lambda}_{\\tiny NA}(t) =  \\sum_{t_j \\leq t} \\frac{d_j}{r_j}\\]\nFrom \\(\\widehat{\\Lambda}_{\\tiny NA}(t)\\), an alternative to the KM estimator of \\(S(t)\\) can be calculated as \\[\\widehat{S}_{\\tiny FH}(t) = \\exp[-\\widehat{\\Lambda}_{\\tiny NA}(t)]\\]\n\nFleming-Harrington estimator"
+  },
+  {
+    "objectID": "unit4-lect5.html#example-time-to-recidivism-rossi-1980",
+    "href": "unit4-lect5.html#example-time-to-recidivism-rossi-1980",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "Example: Time to recidivism, Rossi (1980)",
+    "text": "Example: Time to recidivism, Rossi (1980)\nRecidivism is the event of re-arrest and reincarceration after release from prison.\n\nA randomized study with 52 weeks of follow-up after randomization collected information on the following variables:\nfin: Financial support vs no financial support after release\nweek: Time in weeks to either re-arrest or censoring\narrest: {1} = arrest during the follow-up, {0} = no arrest"
+  },
+  {
+    "objectID": "unit4-lect5.html#the-km-estimate-of-recidivism-with-ci",
+    "href": "unit4-lect5.html#the-km-estimate-of-recidivism-with-ci",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "The KM estimate of recidivism, with CI",
+    "text": "The KM estimate of recidivism, with CI\n\nload(\"/Users/asarvet/Library/CloudStorage/OneDrive-UniversityofMassachusetts/UMass/Teaching/Topics/2026/Lectures/Unit4-Survival/Data/rossi.rda\")\nrossi.recidivism.km &lt;- survfit(Surv(week, arrest) ~ fin, \n                               data = rossi)\nplot(rossi.recidivism.km, lty = 2:3, col = 3:4, mark.time = TRUE, \n     xlab = \"Weeks\", \n     ylab = \"Probability of No Recidivism\", \n     axes = FALSE, \n     conf.times = c(10,30,50),\n     main = \"KM of No Recidivism Probability, with Conf. Int.\",\n     cex = 0.6, cex.main = 0.8, cex.lab=0.8)\naxis(1)\naxis(2)\nlegend(10, .5, c(\"No Financial Support\", \"Financial Support\"), \n       lty = 2:3, col = 3:4, cex = 0.6)"
+  },
+  {
+    "objectID": "unit4-lect5.html#the-km-estimate-of-recidivism-with-ci-1",
+    "href": "unit4-lect5.html#the-km-estimate-of-recidivism-with-ci-1",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "The KM estimate of recidivism, with CI",
+    "text": "The KM estimate of recidivism, with CI"
+  },
+  {
+    "objectID": "unit4-lect5.html#the-na-estimate-of-recidivism-with-ci",
+    "href": "unit4-lect5.html#the-na-estimate-of-recidivism-with-ci",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "The NA estimate of recidivism, with CI",
+    "text": "The NA estimate of recidivism, with CI\n\nload(\"/Users/asarvet/Library/CloudStorage/OneDrive-UniversityofMassachusetts/UMass/Teaching/Topics/2026/Lectures/Unit4-Survival/Data/rossi.rda\")\nrossi.recidivism.km &lt;- survfit(Surv(week, arrest) ~ fin, \n                               data = rossi)\nplot(rossi.recidivism.km, lty = 2:3, col = 3:4, mark.time = TRUE, \n     fun = \"cumhaz\",\n     xlab = \"Weeks\", \n     ylab = \"Cumulative Hazard of Recidivism\", \n     axes = FALSE, \n     conf.times = c(10,30,50),\n     main = \"Cumulative Risk of Recidivism, \n     with Conf. Int.\",\n     cex = 0.6, cex.main = 0.8, cex.lab=0.8)\naxis(1)\naxis(2)\nlegend(\"topleft\", inset = c(0.1, 0.3), \n       c(\"No Financial Support\", \"Financial Support\"),\n       lty = 2:3, col = 3:4, cex = 0.6)"
+  },
+  {
+    "objectID": "unit4-lect5.html#the-na-estimate-of-recidivism-with-ci-1",
+    "href": "unit4-lect5.html#the-na-estimate-of-recidivism-with-ci-1",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "The NA estimate of recidivism, with CI",
+    "text": "The NA estimate of recidivism, with CI"
+  },
+  {
+    "objectID": "unit4-lect5.html#comparing-survival-between-groups",
+    "href": "unit4-lect5.html#comparing-survival-between-groups",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "Comparing survival between groups",
+    "text": "Comparing survival between groups\n\nKM and NA naturally motivate point-wise comparisons between groups\n\nusually methods can be used to construct hypothesis tests comparing survival at a given point in time (e.g., \\(S(t \\mid A=1)\\) vs. \\(S(t \\mid A=0)\\) for a fixed \\(t\\)\n\noverlapping 1- \\(\\alpha\\) confidence intervals \\(\\iff p&lt;\\alpha\\)\n\n\nBut: what about testing if \\(S(\\cdot \\mid A=1)\\) differs from \\(S(\\cdot \\mid A=0)\\): do the survival functions differ?\n\nWhen we assume parametric distribution for \\(T\\) this reduces to tests of whether parameters differ, e.g., rate parameters differ in exponential distributions conditional on \\(A\\).\nWhat about non-parametric methods with (independent) censoring?"
+  },
+  {
+    "objectID": "unit4-lect5.html#the-log-rank-test",
+    "href": "unit4-lect5.html#the-log-rank-test",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "The log-rank test",
+    "text": "The log-rank test\nThe log-rank test is the most widely used non-parametric test for comparing survival between groups.\n\nTo construct the log-rank test, we apply the idea of analyzing \\(K\\) \\(2\\times 2\\) contingency tables\nFor the two-group log-rank test:\n\nConstruct a \\(2 \\times 2\\) table at each distinct failure time.\nCompare the failure rates between the two groups, conditional on the number at risk in the groups.\nCombine the results from each table using the Cochran–Mantel–Haenszel (CMH) test of association."
+  },
+  {
+    "objectID": "unit4-lect5.html#formal-notation-for-the-log-rank-test",
+    "href": "unit4-lect5.html#formal-notation-for-the-log-rank-test",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "Formal notation for the log-rank test",
+    "text": "Formal notation for the log-rank test\nLet \\(\\tau_1, \\ldots,\\tau_K\\) represent the \\(K\\) ordered, distinct failure times.\nThe table at the \\(j\\)-th failure time, is\n\nDie/Fail\n\n\n\n\nYes\nNo\nTotal\n\n\n\n\nGroup 0\n\\(d_{0j}\\)\n\\(r_{0j} - d_{0j}\\)\n\\(r_{0j}\\)\n\n\nGroup 1\n\\(d_{1j}\\)\n\\(r_{1j} - d_{1j}\\)\n\\(r_{1j}\\)\n\n\nTotal\n\\(d_j\\)\n\\(r_j - d_j\\)\n\\(r_j\\)\n\n\n\n\nwhere\n\n\\(d_{0j}\\) and \\(d_{1j}\\) are the number of failures in group 0 and 1, respectively, at the \\(j\\)-th failure time\n\\(r_{0j}\\) and \\(r_{1j}\\) are the number at risk in groups 0 and 1, at the \\(j\\)-th failure time"
+  },
+  {
+    "objectID": "unit4-lect5.html#the-log-rank-test-1",
+    "href": "unit4-lect5.html#the-log-rank-test-1",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "The log-rank test",
+    "text": "The log-rank test\nThe log-rank test statistic is\n\\[\\begin{align*}\n\\chi^2_{\\text{log-rank}} &=\n\\frac{\\left[{\\sum_{j=1}^K (d_{0j} - r_{0j} \\times d_j/r_j)}\\right]^2}\n{\\sum_{j=1}^K  {r_{1j} r_{0j} d_j (r_j-d_j)}/{[r_j^2(r_j-1)]}}\n\\end{align*}\\]\nThis statistic will have an approximate \\(\\chi^2\\) distribution with 1 df.\nNote: the log-rank test is most powerful when hazards ratio is constant over time (i.e., the proportional hazards)."
+  },
+  {
+    "objectID": "unit4-lect5.html#efficiency-of-the-log-rank-test",
+    "href": "unit4-lect5.html#efficiency-of-the-log-rank-test",
+    "title": "Non-parametric estimators and group comparisons",
+    "section": "Efficiency of the log-rank test",
+    "text": "Efficiency of the log-rank test\nThe CMH test for a series of tables stratified by a potential confounder is most powerful when \n\nThe tables have a constant odds ratio.\n\nAnalogously, the log-rank test is most powerful when \n\nThe hazard ratios are constant across \\(t\\) time intervals.\nThis corresponds to proportional hazards."
+  }
+]

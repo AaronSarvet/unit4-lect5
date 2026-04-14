@@ -1,0 +1,502 @@
+---
+title: "Non-parametric estimators and group comparisons"
+
+format:
+  revealjs:
+    slide-level: 2
+    incremental: true
+    slide-number: true
+    controls: true
+    autoScale: true
+    minScale: 0.6
+    maxScale: 1.0
+    center: false
+    margin: 0.05
+    css: styles.css
+
+    html-math-method:
+      method: mathjax
+      url: https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+    mathjax:
+      macros:
+        independent: "\\perp\\!\\!\\perp"
+---
+
+
+
+  
+## Agenda
+
+- Logistics update:
+  - Project description: **Due today** (submit on canvas)
+  - Progress meeting: Tuesday, April 21,22 (sign-up at link in announcement, must sign up by Monday, April 20)
+  - **New dates for presentations**, April 28, 30 (presentation date assigned April 20)
+  - (Shorter) Homework 4 (with extra credit opportunity): **Due May 7** 
+  
+## Agenda
+
+- Review: Kaplan-Meier
+- Nelson-Aalen: cumulative hazards estimator
+- log-rank tests, intro hazard regression
+ 
+ 
+## Review
+
+```{r}
+library(survival)
+library(ggplot2)
+
+# Data
+x <- c(6,6,6,6,7,9,10,10,11,13,16,17,19,20,22,23,25,32,32,34,35)
+C <- c(1,0,0,0,0,1,1,0,1,0,0,1,1,1,0,0,1,1,1,1,1)
+
+T_L <- x
+T_U <- ifelse(C == 1, Inf, x)
+
+# Grid
+t_grid <- seq(0, 36, by = 0.01)
+
+# Empirical survival
+S_L <- sapply(t_grid, function(t) mean(T_L > t))
+S_U <- sapply(t_grid, function(t) mean(T_U > t))
+
+plot_df <- data.frame(
+  t = t_grid,
+  S_L = S_L,
+  S_U = S_U
+)
+
+# Plot
+ggplot(plot_df, aes(x = t)) +
+  # Ribbon (identified region)
+  geom_ribbon(aes(ymin = S_L, ymax = S_U),
+              alpha = 0.2) +
+  
+  # Bounds
+  geom_step(aes(y = S_L, color = "Lower sharp bound"),
+            linewidth = 1.2) +
+  geom_step(aes(y = S_U, color = "Upper sharp bound"),
+            linewidth = 1.2) +
+  
+  scale_x_continuous(breaks = seq(0, 36, by = 5), limits = c(0, 36)) +
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.1)) +
+  
+  labs(
+    x = "t",
+    y = expression(hat(S)(t)),
+    color = NULL
+  ) +
+  
+  theme_minimal(base_size = 18) +
+  theme(
+    legend.position.inside = c(0.72, 0.82),
+    panel.grid.minor = element_blank()
+  )
+```
+## Review
+
+Discrete-time review
+
+- 4 "survival" random variables
+  - $T$
+  - $T^* = min(X, T)$
+  - $T_L = I(C=1)X + I(C=0)T$
+  - $T_U = I(C=1)\infty + I(C=0)T$
+- 4 "hazards"
+  - $\lambda(k) = P(T=k \mid T\geq k)$
+  - $\lambda_L(k) = P(T_L=k \mid T_L\geq k)$
+  - $\lambda_U(k) = P(T_U=k \mid T_U\geq k)$
+  - $\lambda^*(k) = P(T^*=k \mid T^* \geq k, X>k)$
+
+## Review
+
+Discrete-time review
+
+- No censoring
+  - $S(t) = \prod\limits_{k=0}^t\Big(1-\lambda(k)\Big)$
+- Censoring, no assumptions
+  - **Sharp lower bound**: $S_L(t) = \prod\limits_{k=0}^t\Big(1-\lambda_L(k)\Big)$
+  - **Sharp upper bound**: $S_U(t) = \prod\limits_{k=0}^t\Big(1-\lambda_U(k)\Big)$
+- Independent censoring: $T \perp X$
+  - $S(t) = \prod\limits_{k=0}^t\Big(1-\lambda^*(k)\Big)$
+  - Next week: using causal reasoning to justify, relax assumptions and deploy explicit causal methods
+  
+## Review
+
+The KM estimator of the survival function $S(t)=P(T > t)$ is
+$$\widehat{S}(t) = \prod_{j: \tau_j \leq t} \frac{ r_j - d_j } {r_j} = \prod_{j: \tau_j \leq t} \left(1 - \frac{d_j}{r_j}\right), \text{where}$$
+
+- $\tau_1, \ldots, \tau_K$ are the $K$ distinct observed event times. 
+- $d_j$ is the number of deaths at $\tau_j$
+- $c_j$ is the number of censored observations in the interval $[\tau_{j}, \tau_{j+1})$
+    - Censoring times tied at $\tau_j$ are included in $c_j$
+- $r_j$ is the number of individuals ``at risk'' right before $\tau_j$ (i.e. everyone who has an event or is censored *at or after* that time).
+    - Hence, $r_j = r_{j-1} - d_{j-1} - c_{j-1}$
+    - Alternatively, $r_j = \sum_{l \ge j}(c_l+d_l)$
+  
+## Censoring...
+
+$T^*$: ${\color{blue}6^+},6,6,6,7,{\color{blue}9^+,10^+},10,{\color{blue}11^+},13,16,{\color{blue}17^+}$ ${\color{blue}19^+,20^+},22,23,{\color{blue}25^+,32^+,32^+,34^+,35^+}$
+
+::: {.smaller}
+| Values of $t$  | # $T<t, C>t$ | $1-\lambda^*(t)$ | $\widehat{S}_{KM}(t)$ |
+|:-----------------|-----------------------------:|----------------------------------:|----------------------:|
+| $0  \le t < 6$   | $21$ | -- | $1$ |
+| $6  \le t < 7$   | $21$ | $18/21$ | $18/21 = 0.86$ |
+| $7  \le t < 10$  | $17$ | $16/17$ | $(18/21)(16/17) = 0.81$ |
+| $10 \le t < 13$  | $15$ | $14/15$ | $(18/21)(16/17)(14/15) = 0.75$ |
+| $13 \le t < 16$  | $12$ | $11/12$ | $(18/21)(16/17)(14/15)(11/12) = 0.69$ |
+| $16 \le t < 22$  | $11$ | $10/11$ | $(18/21)(16/17)(14/15)(11/12)(10/11) = 0.63$ |
+| $22 \le t < 23$  | $7$  | $6/7$ |  $(18/21)(16/17)(14/15)(11/12)(10/11)(6/7) = 0.54$ |
+| $23 \le t < 36$  | $6$  | $5/6$ |  $(18/21)(16/17)(14/15)(11/12)(10/11)(6/7)(5/6) = 0.45$ |
+:::
+
+## Censoring...
+
+```{r}
+library(ggplot2)
+
+# Data
+x <- c(6,6,6,6,7,9,10,10,11,13,16,17,19,20,22,23,25,32,32,34,35)
+C <- c(1,0,0,0,0,1,1,0,1,0,0,1,1,1,0,0,1,1,1,1,1)
+
+T_L <- x
+T_U <- ifelse(C == 1, Inf, x)
+
+# Grid
+t_grid <- seq(0, 36, by = 0.01)
+
+# Bounds
+S_L <- sapply(t_grid, function(t) mean(T_L > t))
+S_U <- sapply(t_grid, function(t) mean(T_U > t))
+
+# --- Kaplan–Meier ---
+# Compute KM manually to stay transparent for teaching
+
+# Order data
+ord <- order(x)
+x_ord <- x[ord]
+C_ord <- C[ord]
+
+# Unique event times
+event_times <- sort(unique(x_ord[C_ord == 0]))
+
+# Initialize
+S_km_vals <- numeric(length(event_times))
+S_current <- 1
+
+for (j in seq_along(event_times)) {
+  t <- event_times[j]
+  
+  # Risk set: those still under observation just before t
+  Y_t <- sum(x_ord >= t)
+  
+  # Events at t
+  dN_t <- sum(x_ord == t & C_ord == 0)
+  
+  S_current <- S_current * (1 - dN_t / Y_t)
+  S_km_vals[j] <- S_current
+}
+
+# Turn into step function over grid
+S_KM <- sapply(t_grid, function(t) {
+  if (t < min(event_times)) return(1)
+  idx <- max(which(event_times <= t))
+  return(S_km_vals[idx])
+})
+
+# Data frame
+plot_df <- data.frame(
+  t = t_grid,
+  S_L = S_L,
+  S_U = S_U,
+  S_KM = S_KM
+)
+
+# Plot
+ggplot(plot_df, aes(x = t)) +
+  
+  # Ribbon (identified region)
+  geom_ribbon(aes(ymin = S_L, ymax = S_U),
+              fill = "gray70", alpha = 0.3) +
+  
+  # Bounds
+  geom_step(aes(y = S_L, color = "Lower bound"),
+            linewidth = 1.2) +
+  geom_step(aes(y = S_U, color = "Upper bound"),
+            linewidth = 1.2) +
+  
+  # KM curve
+  geom_step(aes(y = S_KM, color = "Kaplan–Meier"),
+            linewidth = 1.4, linetype = "solid") +
+  
+  scale_x_continuous(breaks = seq(0, 36, by = 5), limits = c(0, 36)) +
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.1)) +
+  
+  labs(
+    x = "t",
+    y = expression(hat(S)(t)),
+    color = NULL
+  ) +
+  
+  theme_minimal(base_size = 18) +
+  theme(
+    legend.position = c(0.72, 0.82),
+    panel.grid.minor = element_blank()
+  )
+```
+  
+
+## Confidence intervals for the KM    
+  
+  A pointwise 95\% confidence interval (CI) could be based on
+$$  
+  \widehat{S}(t)  \pm z_{1-\alpha/2} \times \text{s.e.}[\widehat{S}(t)], 
+$$
+  with $\text{s.e.}[\widehat{S}(t)]$  estimated using Greenwood's formula.
+
+- What is a potential problem with this approach?
+- This approach can yield values $>1$ or $<0$.
+
+## Confidence intervals for the KM  
+
+- The better approach is to use the *log-log* transformation and base intervals around 
+$$L(t) = \log[-\log[S(t)]]$$
+- To transform back, use $S(t)=\exp[-\exp[L(t)]]$.
+- In *R*, use the option *conf.type = "log-log"*. The default transformation in *R* is $L(t) = -\log[S(t)]$, i.e. *conf.type = "log"*.
+
+
+## Log-log transforamtion for CI
+
+- **1.** Define $L(t) = \log[-\log[S(t)]]$.
+- **2.** Form a 95\% CI for $L(t)$, $(\widehat{L}(t)-A,\widehat{L}(t)+A),$   with $A= 1.96 \times \text{s.e.}[\widehat{L}(t)].$ 
+- **3.** Apply $S(t)=\exp[-\exp[L(t)]]$ to obtain the confidence bounds for the 95\% CI on $S(t)$, 
+$$
+\left( \exp[-e^{(\widehat{L}(t)+A)}],\exp[-e^{(\widehat{L}(t)-A)}]\right)
+$$
+- **4.** Substituting $\widehat{L}(t)=\log[-\log[\widehat{S}(t)]]$ back into the above bounds yields confidence bounds of
+$$\left([\widehat{S}(t)]^{e^A},[\widehat{S}(t)]^{e^{-A}}\right)$$
+
+
+## Log-log transforamtion for CI - cont.  
+
+
+Since
+
+- $0 \leq S(t) \le 1$, 
+- $0 \leq -\log[S(t)] < \infty$, and
+- $-\infty < \log[-\log[S(t)]] < \infty,$
+- then: the CI will be in the proper range (i.e. between 0 and 1) when transformed back.
+
+
+## The Cumulative Hazard (Nelson--Aalen) Estimator
+
+Recall:
+
+- **Cumulative hazard function**: $\Lambda(t) := \int_0^t \lambda(u)du$
+  - $\Lambda(t) = -log[S(t)]$ 
+  - $S(t) = exp[-\Lambda(t)]$
+
+## The Cumulative Hazard (Nelson--Aalen) Estimator
+
+Discrete time intuiton...
+
+- Kaplan Meier leveraged: $S(t) = \prod\limits_{k=0}^t\Big(1-\lambda(k)\Big)$
+- Nelson-Aalen will leverage: $S(t)  =  exp\Big(-\sum\limits_{k=0}^t\lambda(k)\Big)$
+- Remember, under independent censoring $\lambda(k) = \lambda^*(k)$, so we can use whichever estimator we like!
+
+
+## Nelson--Aalen Estimator
+
+Continuous time:
+
+- The cumulative hazard $\Lambda(t)$ can be approximated by a sum over $j$ intervals, $$\Lambda(t) \approx \sum_{j}  \lambda_j  \Delta$$ where 
+  - $\lambda_j$ is the value of the hazard in the $j^{th}$ interval 
+  - $\Delta$ is the width of each interval
+  
+## Nelson--Aalen Estimator
+
+Continuous time:
+
+- Since $\widehat{\lambda}_j \Delta$ is approximately the probability of having an event in an interval $j$, conditional on having survived until the beginning of the interval, $\Lambda(t)$ can be approximated further as $$\Lambda(t) \approx \sum_{j}  \lambda_j  \Delta \approx \sum_{j} \frac{d_j}{r_j}$$
+
+
+## Nelson--Aalen Estimator
+
+- Thus, the *Nelson--Aalen (NA) estimator* can be written as
+$$\widehat{\Lambda}_{\tiny NA}(t) =  \sum_{t_j \leq t} \frac{d_j}{r_j}$$
+- From $\widehat{\Lambda}_{\tiny NA}(t)$, an alternative to the KM estimator of $S(t)$ can be calculated as $$\widehat{S}_{\tiny FH}(t) = \exp[-\widehat{\Lambda}_{\tiny NA}(t)]$$
+  - *Fleming-Harrington estimator*
+
+## Example: Time to recidivism, Rossi (1980)
+
+Recidivism is the event of re-arrest and reincarceration after release from prison.
+
+- A randomized study with 52 weeks of follow-up after randomization collected information on the following variables:
+- *fin*:  Financial support vs no financial support after release
+- *week*:  Time in weeks to either re-arrest or censoring
+- *arrest*: {1} = arrest during the follow-up,  {0} = no arrest
+
+## The KM estimate of recidivism, with CI
+
+```{r, eval = FALSE, echo=TRUE}
+
+load("/Users/asarvet/Library/CloudStorage/OneDrive-UniversityofMassachusetts/UMass/Teaching/Topics/2026/Lectures/Unit4-Survival/Data/rossi.rda")
+rossi.recidivism.km <- survfit(Surv(week, arrest) ~ fin, 
+                               data = rossi)
+plot(rossi.recidivism.km, lty = 2:3, col = 3:4, mark.time = TRUE, 
+     xlab = "Weeks", 
+     ylab = "Probability of No Recidivism", 
+     axes = FALSE, 
+     conf.times = c(10,30,50),
+     main = "KM of No Recidivism Probability, with Conf. Int.",
+     cex = 0.6, cex.main = 0.8, cex.lab=0.8)
+axis(1)
+axis(2)
+legend(10, .5, c("No Financial Support", "Financial Support"), 
+       lty = 2:3, col = 3:4, cex = 0.6)
+```
+
+
+## The KM estimate of recidivism, with CI
+
+```{r, eval = TRUE, echo=FALSE, fig.width=4.3, fig.height=3.5}
+
+load("/Users/asarvet/Library/CloudStorage/OneDrive-UniversityofMassachusetts/UMass/Teaching/Topics/2026/Lectures/Unit4-Survival/Data/rossi.rda")
+rossi.recidivism.km <- survfit(Surv(week, arrest) ~ fin, 
+                               data = rossi)
+plot(rossi.recidivism.km, lty = 2:3, col = 3:4, mark.time = TRUE, 
+     xlab = "Weeks", 
+     ylab = "Probability of No Recidivism", 
+     axes = FALSE, 
+     conf.times = c(10,30,50),
+     main = "KM of No Recidivism Probability, with Conf. Int.",
+     cex = 0.6, cex.main = 0.8, cex.lab=0.8)
+axis(1)
+axis(2)
+legend(10, .5, c("No Financial Support", "Financial Support"), 
+       lty = 2:3, col = 3:4, cex = 0.6)
+```
+
+## The NA estimate of recidivism, with CI
+
+```{r, eval = FALSE, echo=TRUE, fig.width=4.3, fig.height=3.5}
+
+load("/Users/asarvet/Library/CloudStorage/OneDrive-UniversityofMassachusetts/UMass/Teaching/Topics/2026/Lectures/Unit4-Survival/Data/rossi.rda")
+rossi.recidivism.km <- survfit(Surv(week, arrest) ~ fin, 
+                               data = rossi)
+plot(rossi.recidivism.km, lty = 2:3, col = 3:4, mark.time = TRUE, 
+     fun = "cumhaz",
+     xlab = "Weeks", 
+     ylab = "Cumulative Hazard of Recidivism", 
+     axes = FALSE, 
+     conf.times = c(10,30,50),
+     main = "Cumulative Risk of Recidivism, 
+     with Conf. Int.",
+     cex = 0.6, cex.main = 0.8, cex.lab=0.8)
+axis(1)
+axis(2)
+legend("topleft", inset = c(0.1, 0.3), 
+       c("No Financial Support", "Financial Support"),
+       lty = 2:3, col = 3:4, cex = 0.6)
+```
+
+## The NA estimate of recidivism, with CI
+
+```{r, eval = TRUE, echo=FALSE, fig.width=4.3, fig.height=3.5}
+
+load("/Users/asarvet/Library/CloudStorage/OneDrive-UniversityofMassachusetts/UMass/Teaching/Topics/2026/Lectures/Unit4-Survival/Data/rossi.rda")
+rossi.recidivism.km <- survfit(Surv(week, arrest) ~ fin, 
+                               data = rossi)
+plot(rossi.recidivism.km, lty = 2:3, col = 3:4, mark.time = TRUE, 
+     fun = "cumhaz",
+     xlab = "Weeks", 
+     ylab = "Cumulative Hazard of Recidivism", 
+     axes = FALSE, 
+     conf.times = c(10,30,50),
+     main = "Cumulative Risk of Recidivism, 
+     with Conf. Int.",
+     cex = 0.6, cex.main = 0.8, cex.lab=0.8)
+axis(1)
+axis(2)
+legend("topleft", inset = c(0.1, 0.3), 
+       c("No Financial Support", "Financial Support"),
+       lty = 2:3, col = 3:4, cex = 0.6)
+```
+
+## Comparing survival between groups
+
+- KM and NA naturally motivate point-wise comparisons between groups
+  - usually methods can be used to construct hypothesis tests comparing survival at a given point in time (e.g., $S(t \mid A=1)$ vs. $S(t \mid A=0)$ for a fixed $t$
+    - overlapping 1- $\alpha$ confidence intervals $\iff p<\alpha$
+- But: what about testing if $S(\cdot \mid A=1)$ differs from $S(\cdot \mid A=0)$: do the survival **functions** differ?
+  - When we assume parametric distribution for $T$ this reduces to tests of whether parameters differ, e.g., rate parameters differ in exponential distributions conditional on $A$.
+  - What about non-parametric methods with (independent) censoring?
+  
+  
+## The log-rank test
+
+The log-rank test is the most widely used non-parametric test for comparing survival between groups. 
+
+- To construct the log-rank test, we apply the idea of analyzing $K$ $2\times 2$ contingency tables
+- For the two-group *log-rank* test:    
+  - Construct a $2 \times 2$ table at each distinct failure time.
+  - Compare the failure rates between the two groups, conditional on the number at risk in the groups.
+  - Combine the results from each table using the Cochran--Mantel--Haenszel (CMH) test of association.
+
+
+## Formal notation for the log-rank test
+
+Let $\tau_1, \ldots,\tau_K$ represent the $K$ ordered, distinct failure times.
+
+The table at the $j$-th failure time, is
+
+::: {.smaller .center}
+
+**Die/Fail**
+
+|            | Yes           | No                     | Total   |
+|------------|---------------|------------------------|---------|
+| Group 0    | $d_{0j}$      | $r_{0j} - d_{0j}$      | $r_{0j}$ |
+| Group 1    | $d_{1j}$      | $r_{1j} - d_{1j}$      | $r_{1j}$ |
+| **Total**  | $d_j$         | $r_j - d_j$            | $r_j$   |
+
+:::
+where    
+
+- $d_{0j}$ and $d_{1j}$ are the number of failures in group 0 and 1, respectively, at the $j$-th failure time   
+
+-  $r_{0j}$ and $r_{1j}$ are the number at risk in groups 0 and 1, at the $j$-th failure time
+
+
+## The log-rank test 
+
+The log-rank test statistic is
+
+\begin{align*}
+\chi^2_{\text{log-rank}} &=
+\frac{\left[{\sum_{j=1}^K (d_{0j} - r_{0j} \times d_j/r_j)}\right]^2}
+{\sum_{j=1}^K  {r_{1j} r_{0j} d_j (r_j-d_j)}/{[r_j^2(r_j-1)]}}
+\end{align*}
+
+This statistic will have an approximate $\chi^2$ distribution with 1 df.
+
+*Note:* the log-rank test is most powerful when hazards ratio is constant over time (i.e., the *proportional hazards*).
+
+
+## Efficiency of the log-rank test
+
+The CMH test for a series of tables stratified by a potential confounder is most powerful when \ldots  
+
+- The tables have a constant odds ratio.
+
+Analogously, the log-rank test is most powerful when \ldots
+
+- The hazard ratios are constant across $t$ time intervals.  
+
+- This corresponds to *proportional hazards*.
+
+
+
+  
